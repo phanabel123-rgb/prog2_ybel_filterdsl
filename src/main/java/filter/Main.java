@@ -20,14 +20,14 @@ public class Main {
         """
         genre in ("rock", "jazz") or year <= 1990 and not artist == "Beatles"
         """;
-    var ast1 = AstBuilders.fromQuery(query, new AstBuilderPattern()::translate);
+    //var ast1 = AstBuilders.fromQuery(query, new AstBuilderPattern()::translate);
     var ast2 = AstBuilders.fromQuery(query, new AstBuilderVisitor()::translate);
-    IO.println(AstPrinter.toString(ast1));
+    //IO.println(AstPrinter.toString(ast1));
     IO.println(AstPrinter.toString(ast2));
 
     // ---------- data as in songlist.txt ----------
     var items = MediaItem.loadFromResource("songlist.txt");
-    var matching = items.stream().filter(i -> Evaluator.matches(i, ast1)).toList();
+    var matching = items.stream().filter(i -> Evaluator.matches(i, ast2)).toList();
     matching.forEach(IO::println);
 
     // ---------- AST ----------
