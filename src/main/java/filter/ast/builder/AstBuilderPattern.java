@@ -14,15 +14,16 @@ public class AstBuilderPattern {
   // query  : expr EOF
   public Expr translate(FilterParser.QueryContext ctx) {
     // TODO
-      Expr e = buildExpr(ctx.expr());
-    return e;
+
+    return buildExpr(ctx.expr());
   }
 
   // expr: orExpr
   private Expr buildExpr(FilterParser.ExprContext ctx) {
     // TODO
-      Expr e = buildOrExpr(ctx.orExpr());
-    return e;
+
+    return buildOrExpr(ctx.orExpr());
+
   }
 
   // orExpr : andExpr (OR andExpr)*
@@ -31,8 +32,8 @@ public class AstBuilderPattern {
       Expr e = buildAndExpr(ctx.andExpr(0));
       for (int i = 1; i < ctx.andExpr().size(); i++) {
           Expr e2 = buildAndExpr(ctx.andExpr(i));
-          Expr orNode = new Expr.Or(e, e2);
-          e = orNode;
+          e = new Expr.Or(e, e2);
+
       }
     return e;
   }
@@ -43,8 +44,8 @@ public class AstBuilderPattern {
       Expr e = buildNotExpr(ctx.notExpr(0));
       for (int i = 1; i < ctx.notExpr().size(); i++) {
           Expr e2 = buildNotExpr(ctx.notExpr(i));
-          Expr andNode = new Expr.And(e, e2);
-          e = andNode;
+          e = new Expr.And(e, e2);
+
       }
     return e;
   }
@@ -85,8 +86,7 @@ public class AstBuilderPattern {
           }
           case FilterParser.ComparisonContext c when c.IN() != null-> {
               List<Value> e = buildLiteralList(c.literalList());
-              Expr inList = new Expr.InList(field, e);
-              yield inList;
+              yield new Expr.InList(field, e);
           }
           default -> throw new IllegalArgumentException("idk");
       };
@@ -106,7 +106,11 @@ public class AstBuilderPattern {
   private Value buildLiteral(FilterParser.LiteralContext ctx) {
       // TODO
       return switch (ctx) {
-          case FilterParser.LiteralContext c when c.STRING() != null -> new Value.Str(c.STRING().getText());
+          case FilterParser.LiteralContext c when c.STRING() != null ->{
+              String text = c.STRING().getText();
+              String saubererText = text.substring(1, text.length() - 1);
+              yield new Value.Str(saubererText);
+          }
           case FilterParser.LiteralContext c when c.NUMBER() != null ->
               new Value.Num(Integer.parseInt(c.NUMBER().getText()));
           default -> throw new IllegalArgumentException("idk");
