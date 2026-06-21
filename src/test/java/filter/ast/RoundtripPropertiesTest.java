@@ -1,16 +1,93 @@
 package filter.ast;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import filter.ast.builder.AstBuilderPattern;
 import filter.ast.builder.AstBuilderVisitor;
 import filter.ast.builder.AstBuilders;
+import filter.ast.nodes.CompOp;
+import filter.ast.nodes.Expr;
+import filter.ast.nodes.Value;
 import filter.ast.printer.AstPrinter;
 import net.jqwik.api.*;
 
 public class RoundtripPropertiesTest {
 
   // TODO
+  @Property
+  void roundtripPatternBuilder(@ForAll("simpleQueries") String originalQuery) {
+
+      Expr ast1 = AstBuilders.fromQuery(originalQuery, new AstBuilderPattern()::translate);
+
+      String printedQuery = AstPrinter.toString(ast1);
+
+      Expr ast2 = AstBuilders.fromQuery(printedQuery, new AstBuilderPattern()::translate);
+
+      assertEquals(ast1, ast2, "Pattern-Roundtrip fehlgeschlagen für: "+ originalQuery);
+  }
+
+    @Property
+    void roundtripVisitorBuilder(@ForAll("simpleQueries") String originalQuery) {
+
+        Expr ast1 = AstBuilders.fromQuery(originalQuery, new AstBuilderVisitor()::translate);
+        String printedQuery = AstPrinter.toString(ast1);
+        Expr ast2 = AstBuilders.fromQuery(printedQuery, new AstBuilderVisitor()::translate);
+
+        assertEquals(ast1, ast2, "Visitor-Roundtrip fehlgeschlagen für: "+originalQuery);
+    }
+
+    @Property
+    void crossBuilderValidation(@ForAll("simpleQueries") String originalQuery) {
+
+        Expr astVisitor = AstBuilders.fromQuery(originalQuery, new AstBuilderVisitor()::translate);
+        String printedVisitor = AstPrinter.toString(astVisitor);
+
+        Expr astPatternFromVisitorPrint = AstBuilders.fromQuery(printedVisitor, new AstBuilderPattern()::translate);
+
+        assertEquals(astVisitor, astPatternFromVisitorPrint, "Cross-Builder-Validierung fehlgeschlagen!");
+    }
+
+    @Property
+    void andIdempotenz(@ForAll("simpleQueries") String query) {
+        // Gesetz der Idempotenz: A AND A ist logisch genau dasselbe wie A
+        Expr a = AstBuilders.fromQuery(query, new AstBuilderPattern()::translate);
+
+        Expr andExpression = new Expr.And(a, a);
+
+        Expr simplified = AstBuilders.simplify(andExpression);
+
+
+        assertEquals(a, simplified, "Idempotenz von AND fehlgeschlagen!");
+    }
+
+    @Property
+    void orIdempotenz(@ForAll("simpleQueries") String query) {
+        // Gesetz der Idempotenz für OR: A OR A = A
+        Expr a = AstBuilders.fromQuery(query, new AstBuilderPattern()::translate);
+
+        Expr orExpression = new Expr.Or(a, a);
+
+        Expr simplified = AstBuilders.simplify(orExpression);
+
+
+        assertEquals(a, simplified, "Idempotenz von OR fehlgeschlagen!");
+    }
+
+    @Property
+    void doppelteVerneinung(@ForAll("simpleQueries") String query) {
+
+        Expr a = AstBuilders.fromQuery(query, new AstBuilderPattern()::translate);
+
+
+        Expr doubleNot = new Expr.Not(new Expr.Not(a));
+
+
+        Expr simplified = AstBuilders.simplify(doubleNot);
+
+        assertEquals(a, simplified, "Doppelte Verneinung wurde von simplify nicht aufgelöst!");
+    }
+
 
   // ---------- @Provide-Methods for Arbitraries ----------
 

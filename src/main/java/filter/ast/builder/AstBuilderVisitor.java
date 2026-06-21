@@ -137,6 +137,7 @@ public class AstBuilderVisitor extends FilterBaseVisitor<Void> {
           visit(ctx.literalList());
           String field = ctx.IDENTIFIER().getText();
 
+
           List<Value> values = new ArrayList<>();
           int Anzahl = ctx.literalList().literal().size();
           for (int i = 0; i < Anzahl; i++) {
@@ -165,7 +166,8 @@ public class AstBuilderVisitor extends FilterBaseVisitor<Void> {
   public Void visitLiteral(FilterParser.LiteralContext ctx) {
     // TODO
       if (ctx.STRING() != null) {
-          Value value = new Value.Str(ctx.STRING().getText());
+          String text = ctx.STRING().getText();
+          Value value = new Value.Str(text.substring(1, text.length() - 1));
           this.values.push(value);
       }
       else if (ctx.NUMBER() != null) {

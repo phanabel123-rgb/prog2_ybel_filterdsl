@@ -107,9 +107,9 @@ public class AstBuilderPattern {
       // TODO
       return switch (ctx) {
           case FilterParser.LiteralContext c when c.STRING() != null ->{
-              String text = c.STRING().getText();
-              String saubererText = text.substring(1, text.length() - 1);
-              yield new Value.Str(saubererText);
+              String text = ctx.STRING().getText();
+              String s = text.substring(1, text.length() - 1);
+              yield new Value.Str(s);
           }
           case FilterParser.LiteralContext c when c.NUMBER() != null ->
               new Value.Num(Integer.parseInt(c.NUMBER().getText()));
